@@ -456,8 +456,12 @@ const Auth: React.FC<AuthProps> = ({ mode: initialMode, onNavigate }) => {
         
         {/* Subtitle / System status bar */}
         <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-primary-500 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md shadow-primary-500/20 active:scale-95 transition-transform" onClick={() => onNavigate('landing')}>F</div>
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onNavigate('landing')}>
+            <img 
+              src="/logo.png" 
+              alt="FinaGrow Logo" 
+              className="w-10 h-10 rounded-xl object-contain shadow-md shadow-emerald-500/30 active:scale-95 transition-transform" 
+            />
             <span className="font-bold text-lg tracking-tight font-sans uppercase">FINAGROW</span>
           </div>
           <span className="text-[10px] bg-slate-800/80 border border-slate-700/60 text-emerald-400 font-mono font-bold tracking-widest px-3 py-1 rounded-full uppercase">
@@ -582,7 +586,12 @@ const Auth: React.FC<AuthProps> = ({ mode: initialMode, onNavigate }) => {
           
           <div className="text-center sm:text-left space-y-2">
             <div className="lg:hidden flex justify-center mb-4">
-              <div className="w-12 h-12 bg-gradient-to-tr from-emerald-500 to-primary-500 rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-lg">F</div>
+              <img 
+                src="/logo.png" 
+                alt="FinaGrow Logo" 
+                className="w-12 h-12 rounded-2xl object-contain shadow-lg cursor-pointer" 
+                onClick={() => onNavigate('landing')}
+              />
             </div>
             <h2 className="text-2.5xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               {mode === 'login' ? t('signInTitle') : t('signUpTitle')}

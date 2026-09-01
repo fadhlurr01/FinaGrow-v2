@@ -306,9 +306,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         }`}>
           {/* Logo & Brand Identity */}
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-10 h-10 bg-gradient-to-tr from-primary-600 to-emerald-500 rounded-xl flex items-center justify-center text-white font-extrabold text-2xl shadow-md shadow-primary-500/20">
-              F
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="FinaGrow Logo" 
+              className="w-10 h-10 rounded-xl object-contain shadow-md shadow-emerald-500/20" 
+            />
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
                 FINAGROW <span className="text-primary-500 dark:text-primary-400"></span>
@@ -1971,8 +1973,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             
             {/* Brand column */}
             <div className="col-span-1 md:col-span-2 space-y-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-tr from-primary-600 to-emerald-500 rounded-lg flex items-center justify-center text-white font-black text-xl">F</div>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/logo.png" 
+                  alt="FinaGrow Logo" 
+                  className="w-8 h-8 rounded-lg object-contain shadow-md shadow-emerald-500/20" 
+                />
                 <span className="text-xl font-black text-slate-900 dark:text-white">FINAGROW</span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
