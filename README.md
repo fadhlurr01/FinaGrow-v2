@@ -20,7 +20,7 @@ Sistem Manajemen Keuangan Modern, Cerdas, dan Terintegrasi Penuh (**Frontend Rea
 - **CORS**: Terkonfigurasi untuk integrasi Vite Frontend (`http://localhost:3000` & `http://localhost:5173`)
 
 ### 3. Database Layer
-- **RDBMS**: MySQL 8.x / MariaDB (XAMPP / Remote Host)
+- **RDBMS**: MySQL 8.x / MariaDB (**Laragon** / HeidiSQL / phpMyAdmin)
 - **Tabel Utama**:
   - `users` : Multi-role (`demo`, `user`, `admin`), status langganan (`is_pro`), token auth.
   - `transactions` : Jurnal Umum, Kas & Bank, Inflow & Outflow, COA mapping (Dr/Cr).
@@ -31,9 +31,12 @@ Sistem Manajemen Keuangan Modern, Cerdas, dan Terintegrasi Penuh (**Frontend Rea
 
 ## 🚀 Panduan Menjalankan Aplikasi (Local Development)
 
-### 1. Persiapan Database MySQL
-1. Buka **XAMPP Control Panel** dan nyalakan service **MySQL** & **Apache**.
-2. Buat database baru bernama `finagrow_db` di phpMyAdmin (`http://localhost/phpmyadmin`).
+### 1. Persiapan Database MySQL (Laragon)
+1. Buka aplikasi **Laragon** lalu klik **Start All** (memastikan service **MySQL** dan **Nginx/Apache** aktif).
+2. Buka database tool bawaan Laragon (**Database / HeidiSQL**) atau phpMyAdmin, lalu buat database baru dengan nama:
+   ```sql
+   CREATE DATABASE finagrow_db;
+   ```
 
 ### 2. Konfigurasi Backend (Laravel)
 ```bash
