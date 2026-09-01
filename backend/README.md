@@ -4,11 +4,11 @@ Sistem Backend RESTful API untuk FINAGROW Financial Management System.
 
 ---
 
-## 🛠️ Persiapan Lingkungan Lokal (XAMPP / MySQL)
+## 🛠️ Persiapan Lingkungan Lokal (Laragon / HeidiSQL / MySQL)
 
 ### 1. Buat Database MySQL
-1. Buka **XAMPP Control Panel**, lalu jalankan modul **Apache** dan **MySQL**.
-2. Buka browser dan akses `http://localhost/phpmyadmin`.
+1. Buka aplikasi **Laragon**, lalu klik **Start All** (memastikan service **MySQL** dan **Nginx/Apache** aktif).
+2. Buka **Database** (HeidiSQL) atau phpMyAdmin bawaan Laragon.
 3. Buat database baru bernama: `finagrow_db` (Collation: `utf8mb4_unicode_ci`).
 
 ### 2. Konfigurasi Environment (`.env`)
