@@ -48,15 +48,17 @@ const Budgeting: React.FC = () => {
   // Focus budget
   const [activeBudget, setActiveBudget] = useState<BudgetWithMetrics | null>(null);
 
-  // Form Fields
-  const [accountId, setAccountId] = useState('AC_5100');
-  const [amount, setAmount] = useState(5000000);
-  const [period, setPeriod] = useState(state.activePeriod);
-
   // COA choice list: prefer expense accounts (codes starting with '5') or revenue accounts (codes starting with '4')
   const budgetableCOA = useMemo(() => {
-    return state.coa.filter(acc => acc.type === 'Expense' || acc.type === 'Revenue');
+    const filtered = state.coa.filter(acc => acc.type === 'Expense' || acc.type === 'Revenue');
+    if (filtered.length > 0) return filtered;
+    return state.coa;
   }, [state.coa]);
+
+  // Form Fields
+  const [accountId, setAccountId] = useState(budgetableCOA[0]?.id || '5100');
+  const [amount, setAmount] = useState(5000000);
+  const [period, setPeriod] = useState(state.activePeriod);
 
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat(language === 'id' ? 'id-ID' : 'en-US', {
@@ -69,22 +71,33 @@ const Budgeting: React.FC = () => {
   // Compile calculations for budgets
   const budgetsWithCalculations = useMemo(() => {
     return state.budgets
-      .filter(b => b.period === selectedPeriod && b.entity === state.activeEntity)
+      .filter(b => b.period === selectedPeriod && (b.entity === state.activeEntity || !b.entity))
       .map(b => {
-        const coaAccount = state.coa.find(acc => acc.id === b.accountId);
-        const accountName = coaAccount?.name || 'Unknown Account';
-        const accountCode = coaAccount?.code || '';
+        const coaAccount = state.coa.find(acc => 
+          acc.id === b.accountId || 
+          acc.code === b.accountId || 
+          acc.id.includes(b.accountId) ||
+          (b.accountId && acc.code && b.accountId.includes(acc.code))
+        );
+        const accountName = coaAccount?.name || (
+          b.accountId === '5100' ? 'Beban Gaji & Upah' :
+          b.accountId === '5200' ? 'Beban Utilitas & Listrik' :
+          b.accountId === '5300' ? 'Beban Marketing' :
+          b.accountId === '5000' ? 'HPP Layanan' : 'Pos Biaya Operasional'
+        );
+        const accountCode = coaAccount?.code || b.accountId;
 
         // Calculate actual spent: sum of transactions in this period where debit (dr) is this account
         const actualSpent = state.transactions
           .filter(tx => {
-            const isEntityMatch = tx.entity === b.entity;
+            const isEntityMatch = tx.entity === b.entity || !tx.entity || !b.entity;
             const isPeriodMatch = tx.date.startsWith(b.period);
-            const isTargetAccount = tx.dr === b.accountId || tx.cr === b.accountId;
-            // Ensure indeed transaction affects it (excluding internal transfers between identical codes)
+            const isTargetAccount = 
+              tx.dr === b.accountId || tx.cr === b.accountId ||
+              (coaAccount && (tx.dr === coaAccount.code || tx.dr === coaAccount.id || tx.cr === coaAccount.code || tx.cr === coaAccount.id));
             return isEntityMatch && isPeriodMatch && isTargetAccount;
           })
-          .reduce((sum, tx) => sum + tx.amount, 0);
+          .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
         const remaining = b.amount - actualSpent;
         const utilization = b.amount > 0 ? (actualSpent / b.amount) * 100 : 0;
@@ -237,7 +250,12 @@ const Budgeting: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              if (budgetableCOA.length > 0) {
+                setAccountId(budgetableCOA[0].id);
+              }
+              setIsAddModalOpen(true);
+            }}
             className="whitespace-nowrap flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white" />

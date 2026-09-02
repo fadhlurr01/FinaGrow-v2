@@ -34,7 +34,7 @@ interface DepositFormData {
 }
 
 const CashBank: React.FC = () => {
-  const { state, dispatch } = useFMS();
+  const { state, dispatch, createTransactionApi } = useFMS();
   const { language, t } = useLocalization();
   const { theme } = useTheme();
 
@@ -46,32 +46,40 @@ const CashBank: React.FC = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
 
+  // Fetch only Cash & Bank accounts from Chart of Accounts
+  const cashBankAccounts = useMemo(() => {
+    const list = state.coa.filter(acc => 
+      acc.type === 'Asset' && (
+        acc.code === '1001' || acc.code === '1002' || acc.code === '1003' ||
+        acc.id.includes('1001') || acc.id.includes('1002') || acc.id.includes('1003') ||
+        acc.name.toLowerCase().includes('kas') || 
+        acc.name.toLowerCase().includes('cash') ||
+        acc.name.toLowerCase().includes('bank') ||
+        acc.name.toLowerCase().includes('bca') ||
+        acc.name.toLowerCase().includes('mandiri') ||
+        acc.name.toLowerCase().includes('rekening')
+      )
+    );
+    return list.length > 0 ? list : state.coa.filter(acc => acc.type === 'Asset');
+  }, [state.coa]);
+
   // Forms states
   const [transferForm, setTransferForm] = useState<TransferFormData>({
-    fromAccountId: 'AC_1002',
-    toAccountId: 'AC_1001',
+    fromAccountId: '',
+    toAccountId: '',
     amount: 1000000,
     description: '',
     date: new Date().toISOString().slice(0, 10)
   });
 
   const [depositForm, setDepositForm] = useState<DepositFormData>({
-    accountId: 'AC_1002',
+    accountId: '',
     type: 'income',
     category: 'Sales',
     amount: 5000000,
     description: '',
     date: new Date().toISOString().slice(0, 10)
   });
-
-  // Fetch only Cash & Bank accounts from Chart of Accounts
-  const cashBankAccounts = useMemo(() => {
-    return state.coa.filter(acc => 
-      acc.id === 'AC_1001' || acc.id === 'AC_1002' || acc.id === 'AC_1003' ||
-      acc.name.toLowerCase().includes('kas') || 
-      acc.name.toLowerCase().includes('bank')
-    );
-  }, [state.coa]);
 
   // Calculate live balances dynamically based on journal transactions
   // Cash & Bank are asset accounts -> increase on debit (dr), decrease on credit (cr)
@@ -80,19 +88,19 @@ const CashBank: React.FC = () => {
     
     // Initialize with opening balances
     cashBankAccounts.forEach(acc => {
-      balances[acc.id] = acc.openingBalance || 0;
+      balances[acc.id] = Number(acc.openingBalance) || 0;
     });
 
     // Populate with transaction additions/subtractions
     state.transactions.forEach(tx => {
-      // If debited, this account balance increases
-      if (balances[tx.dr] !== undefined) {
-        balances[tx.dr] += tx.amount;
-      }
-      // If credited, this account balance decreases
-      if (balances[tx.cr] !== undefined) {
-        balances[tx.cr] -= tx.amount;
-      }
+      cashBankAccounts.forEach(acc => {
+        if (tx.dr === acc.id || tx.dr === acc.code) {
+          balances[acc.id] = (balances[acc.id] || 0) + Number(tx.amount);
+        }
+        if (tx.cr === acc.id || tx.cr === acc.code) {
+          balances[acc.id] = (balances[acc.id] || 0) - Number(tx.amount);
+        }
+      });
     });
 
     return balances;
@@ -105,14 +113,14 @@ const CashBank: React.FC = () => {
 
   const totalInflow = useMemo(() => {
     return state.transactions
-      .filter(tx => tx.type === 'income' && cashBankAccounts.some(acc => acc.id === tx.dr))
-      .reduce((sum, tx) => sum + tx.amount, 0);
+      .filter(tx => tx.type === 'income' && cashBankAccounts.some(acc => acc.id === tx.dr || acc.code === tx.dr))
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
   }, [state.transactions, cashBankAccounts]);
 
   const totalOutflow = useMemo(() => {
     return state.transactions
-      .filter(tx => tx.type === 'expense' && cashBankAccounts.some(acc => acc.id === tx.cr))
-      .reduce((sum, tx) => sum + tx.amount, 0);
+      .filter(tx => tx.type === 'expense' && cashBankAccounts.some(acc => acc.id === tx.cr || acc.code === tx.cr))
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
   }, [state.transactions, cashBankAccounts]);
 
   const formatMoney = (amount: number) => {
@@ -152,72 +160,65 @@ const CashBank: React.FC = () => {
   }, [state.transactions, selectedAccountId, searchTerm, cashBankAccounts]);
 
   // Handle Transfer Action
-  const handleTransferSubmit = (e: React.FormEvent) => {
+  const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (transferForm.amount <= 0 || transferForm.fromAccountId === transferForm.toAccountId) {
       alert(language === 'id' ? 'Akun asal dan tujuan tidak boleh sama' : 'Source and destination accounts must be different');
       return;
     }
 
-    const fromAccName = state.coa.find(c => c.id === transferForm.fromAccountId)?.name || 'Account';
-    const toAccName = state.coa.find(c => c.id === transferForm.toAccountId)?.name || 'Account';
+    const fromAcc = state.coa.find(c => c.id === transferForm.fromAccountId || c.code === transferForm.fromAccountId);
+    const toAcc = state.coa.find(c => c.id === transferForm.toAccountId || c.code === transferForm.toAccountId);
 
-    // Dispatches a transaction
-    // Dr target asset (increase), Cr source asset (decrease)
+    const fromAccName = fromAcc?.name || 'Kas Asal';
+    const toAccName = toAcc?.name || 'Bank Tujuan';
+
     const newTx = {
       date: transferForm.date,
       entity: state.activeEntity,
       description: transferForm.description || `${language === 'id' ? 'Transfer dana dari' : 'Fund transfer from'} ${fromAccName} ${language === 'id' ? 'ke' : 'to'} ${toAccName}`,
-      dr: transferForm.toAccountId,
-      cr: transferForm.fromAccountId,
-      amount: transferForm.amount,
+      dr: toAcc ? toAcc.code : (transferForm.toAccountId || '1001'),
+      cr: fromAcc ? fromAcc.code : (transferForm.fromAccountId || '1002'),
+      amount: Number(transferForm.amount),
       cur: state.currency,
-      type: 'expense',
+      type: 'expense' as const,
       category: 'Transfer',
-      status: 'Completed',
-      paymentMethod: 'Bank Transfer'
+      status: 'Completed' as const,
+      payment_method: 'Bank Transfer'
     };
 
-    dispatch({ type: 'ADD_TRANSACTION', payload: newTx });
+    await createTransactionApi(newTx);
     setIsTransferModalOpen(false);
-    // Reset description
     setTransferForm(prev => ({ ...prev, description: '', amount: 1000000 }));
   };
 
   // Handle Deposit / Expense Action
-  const handleDepositSubmit = (e: React.FormEvent) => {
+  const handleDepositSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (depositForm.amount <= 0) return;
 
-    const accName = state.coa.find(c => c.id === depositForm.accountId)?.name || 'Account';
-    
-    // If income: Dr Cash/Bank Asset (increase), Cr Revenue/Equity Account (e.g., AC_4000)
-    // If expense: Dr Expense Account (e.g., AC_5100), Cr Cash/Bank Asset (decrease)
-    let drAccount = '';
-    let crAccount = '';
+    const targetAcc = state.coa.find(c => c.id === depositForm.accountId || c.code === depositForm.accountId);
+    const revenueAcc = state.coa.find(c => c.type === 'Revenue')?.code || '4000';
+    const expenseAcc = state.coa.find(c => c.type === 'Expense')?.code || '5100';
 
-    if (depositForm.type === 'income') {
-      drAccount = depositForm.accountId; // Debited -> cash increases
-      crAccount = 'AC_4000'; // Credited -> Revenue
-    } else {
-      drAccount = 'AC_5300'; // Debited -> Operations Expense
-      crAccount = depositForm.accountId; // Credited -> cash decreases
-    }
+    const isIncome = depositForm.type === 'income';
+    const targetCode = targetAcc ? targetAcc.code : (depositForm.accountId || '1001');
 
     const newTx = {
       date: depositForm.date,
       entity: state.activeEntity,
-      description: depositForm.description || `${depositForm.type === 'income' ? 'Setoran' : 'Penarikan'} ${accName}`,
-      dr: drAccount,
-      cr: crAccount,
-      amount: depositForm.amount,
+      description: depositForm.description || `${depositForm.type === 'income' ? 'Setoran' : 'Penarikan'} ${targetAcc?.name || 'Kas'}`,
+      dr: isIncome ? targetCode : expenseAcc,
+      cr: isIncome ? revenueAcc : targetCode,
+      amount: Number(depositForm.amount),
       cur: state.currency,
-      type: depositForm.type,
-      category: depositForm.category,
-      status: 'Completed',
+      type: isIncome ? ('income' as const) : ('expense' as const),
+      category: depositForm.category || (isIncome ? 'Sales' : 'Operational'),
+      status: 'Completed' as const,
+      payment_method: 'Cash'
     };
 
-    dispatch({ type: 'ADD_TRANSACTION', payload: newTx });
+    await createTransactionApi(newTx);
     setIsDepositModalOpen(false);
     setDepositForm(prev => ({ ...prev, description: '', amount: 1000000 }));
   };
