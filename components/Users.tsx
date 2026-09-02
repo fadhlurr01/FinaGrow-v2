@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useFMS } from '../context/FMSContext';
 import { useLocalization } from '../hooks/useLocalization';
+import { usersApi } from '../services/api';
 import { 
   Users as UsersIcon, 
   Plus, 
@@ -14,7 +15,8 @@ import {
   ShieldAlert,
   UserPlus,
   UserCheck,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 
 interface User {
@@ -27,16 +29,41 @@ interface User {
 }
 
 const DEFAULT_USERS: User[] = [
-  { id: 'U1', name: 'Demo Admin', email: 'demo_admin@fms.com', role: 'Admin', subscription: 'Pro Plan', status: 'Active' },
-  { id: 'U2', name: 'Demo User', email: 'demo_user@fms.com', role: 'User', subscription: 'Pro Plan', status: 'Active' }
+  { id: '1', name: 'Demo Admin', email: 'demo_admin@fms.com', role: 'Admin', subscription: 'Pro Plan', status: 'Active' },
+  { id: '2', name: 'Demo User', email: 'demo_user@fms.com', role: 'User', subscription: 'Pro Plan', status: 'Active' }
 ];
 
 const Users: React.FC = () => {
   const { state, dispatch } = useFMS();
   const { language, t } = useLocalization();
 
-  // Load from central registered repository or context/defaults
+  const [cloudUsers, setCloudUsers] = useState<User[]>([]);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(false);
+
+  // Fetch live users directly from Aiven Cloud PostgreSQL
+  const fetchUsers = async () => {
+    setIsLoadingCloud(true);
+    try {
+      const res = await usersApi.getAll();
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setCloudUsers(res.data);
+      }
+    } catch (err) {
+      console.warn("Could not fetch cloud users, fallback to local:", err);
+    } finally {
+      setIsLoadingCloud(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Load from central cloud repository or context/defaults
   const users: User[] = useMemo(() => {
+    if (cloudUsers.length > 0) {
+      return cloudUsers;
+    }
     try {
       const stored = localStorage.getItem('fms_registered_users');
       if (stored) {
@@ -59,7 +86,7 @@ const Users: React.FC = () => {
       console.error("Error reading users in Users.tsx", e);
     }
     return state.users && state.users.length > 0 ? state.users : DEFAULT_USERS;
-  }, [state.users]);
+  }, [cloudUsers, state.users]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
@@ -124,9 +151,22 @@ const Users: React.FC = () => {
   }, [users, selectedRole, searchTerm]);
 
   // Handle Create User
-  const handleSaveAdd = (e: React.FormEvent) => {
+  const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
+
+    try {
+      await usersApi.create({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        role,
+        status,
+        password: 'password123'
+      });
+      fetchUsers();
+    } catch (err) {
+      console.warn("Could not create user in cloud DB:", err);
+    }
 
     const newUser: User = {
       id: Math.random().toString(),
@@ -181,13 +221,24 @@ const Users: React.FC = () => {
   };
 
   // Save Edit User
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!focusedUser || !name || !email) return;
 
     if (focusedUser.role !== 'User' || focusedUser.email === 'demo_admin@fms.com') {
       alert(language === 'id' ? 'Akun sistem terproteksi tidak dapat diubah!' : 'Protected system account cannot be edited!');
       return;
+    }
+
+    try {
+      await usersApi.update(focusedUser.id, {
+        name: name.trim(),
+        role,
+        status
+      });
+      fetchUsers();
+    } catch (err) {
+      console.warn("Could not update user in cloud DB:", err);
     }
 
     const modified: User = {
@@ -234,13 +285,21 @@ const Users: React.FC = () => {
   };
 
   // Confirm Delete User
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!focusedUser) return;
 
     if (focusedUser.role !== 'User' || focusedUser.email === 'demo_admin@fms.com') {
       alert(language === 'id' ? 'Akun sistem terproteksi tidak dapat dihapus!' : 'Protected system account cannot be deleted!');
       return;
     }
+
+    try {
+      await usersApi.delete(focusedUser.id);
+      fetchUsers();
+    } catch (err) {
+      console.warn("Could not delete user in cloud DB:", err);
+    }
+
     dispatch({ type: 'DELETE_USER', payload: focusedUser.id });
 
     // Sync deletion
@@ -273,19 +332,32 @@ const Users: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setName('');
-            setEmail('');
-            setRole('Accountant');
-            setIsAddModalOpen(true);
-          }}
-          className="whitespace-nowrap flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4 text-white" />
-          <span>{language === 'id' ? 'Undang Anggota' : 'Invite Member'}</span>
-        </button>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={fetchUsers}
+            disabled={isLoadingCloud}
+            title={language === 'id' ? 'Sinkronisasi Data Cloud Aiven' : 'Sync Cloud Data'}
+            className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold py-3 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 text-primary-500 ${isLoadingCloud ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{language === 'id' ? 'Sync Cloud' : 'Sync Cloud'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setName('');
+              setEmail('');
+              setRole('Accountant');
+              setIsAddModalOpen(true);
+            }}
+            className="whitespace-nowrap flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-white" />
+            <span>{language === 'id' ? 'Undang Anggota' : 'Invite Member'}</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. SUMMARY STATS */}

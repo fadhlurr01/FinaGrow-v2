@@ -149,4 +149,25 @@ export const subscriptionsApi = {
   },
 };
 
+// --- USERS MANAGEMENT API SERVICE ---
+export const usersApi = {
+  getAll: async () => {
+    const res = await api.get('/users');
+    return res.data;
+  },
+  create: async (userData: any) => {
+    const res = await api.post('/users', userData);
+    return res.data;
+  },
+  update: async (id: string, userData: any) => {
+    const res = await api.put(`/users?id=${id}`, userData);
+    return res.data;
+  },
+  delete: async (id: string) => {
+    const res = await api.delete(`/users?id=${id}`);
+    return res.data;
+  },
+};
+
+
 export default api;
