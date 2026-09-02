@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Bell, ChevronDown, Check, Globe, Languages, Menu, LogOut, CheckCircle2, AlertTriangle, Info, Trash2 } from 'lucide-react';
+import { Sun, Moon, Bell, ChevronDown, Check, Globe, Languages, Menu, LogOut, CheckCircle2, AlertTriangle, Info, Trash2, RefreshCw } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useLocalization } from '../hooks/useLocalization';
 import { useFMS } from '../context/FMSContext';
@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, isMobileSidebarOpen, setIs
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { language, toggleLanguage, t } = useLocalization();
-  const { state, dispatch } = useFMS();
+  const { state, dispatch, refreshFromApi, isLoading } = useFMS();
   const isPro = state.subscription === 'Pro';
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -81,6 +81,18 @@ const Header: React.FC<HeaderProps> = ({ currentView, isMobileSidebarOpen, setIs
         >
           <div className={`w-1.5 h-1.5 rounded-full ${isPro ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></div>
           <span>{isPro ? 'PRO' : 'FREE'}</span>
+        </button>
+
+        {/* Sync Cloud Database Button */}
+        <button
+          type="button"
+          onClick={() => refreshFromApi()}
+          disabled={isLoading}
+          title={language === 'en' ? 'Sync with Aiven Cloud DB' : 'Sinkronkan dengan Database Cloud Aiven'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-155 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${isLoading ? 'animate-spin' : ''}`} />
+          <span className="hidden md:inline">{isLoading ? 'Syncing...' : 'Sync Cloud'}</span>
         </button>
 
         {/* Toggle Lang */}
