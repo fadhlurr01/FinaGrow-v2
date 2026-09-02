@@ -56,9 +56,13 @@ const Dashboard: React.FC = () => {
 
   const netProfit = totalRevenue - totalExpenses;
 
-  // Let's get combined bank + cash accounts dynamically
+  const isDemo = ['demo_admin@fms.com', 'demo@finagrow.com', 'demo@fms.com', 'demo_user@fms.com'].includes(state.currentUserEmail?.toLowerCase() || '');
+
+  // Dynamic cash and bank calculation across all asset accounts
   const cashAndBank = useMemo(() => {
-    return getAccountBalance('1001') + getAccountBalance('1002') + getAccountBalance('1003');
+    const assetAccounts = state.coa.filter(acc => acc.type === 'Asset');
+    if (assetAccounts.length === 0) return 0;
+    return assetAccounts.reduce((sum, acc) => sum + getAccountBalance(acc.id), 0);
   }, [state.coa, state.transactions]);
 
   const accountsReceivable = useMemo(() => {
@@ -167,31 +171,38 @@ const Dashboard: React.FC = () => {
             </div>
             
             <ul className="divide-y divide-slate-100 dark:divide-slate-700/40">
-              {state.coa
-                .filter(acc => ['1001', '1002', '1003', '1100', '2000'].includes(acc.code))
-                .map((account) => {
+              {state.coa.length === 0 ? (
+                <li className="py-6 text-center text-xs text-slate-400">
+                  {language === 'id' ? 'Belum ada akun di bagan akun.' : 'No accounts available yet.'}
+                </li>
+              ) : (
+                state.coa.slice(0, 5).map((account) => {
                   const currentBalance = getAccountBalance(account.id);
                   const isNegativeText = account.type === 'Liability' || account.type === 'Expense';
+                  const displayName = isDemo && language === 'en'
+                    ? (account.code === '1001' ? 'Petty Cash' :
+                       account.code === '1002' ? 'Bank BCA Account' :
+                       account.code === '1003' ? 'Bank Mandiri Account' :
+                       account.code === '1100' ? 'Accounts Receivable' :
+                       account.code === '2000' ? 'Accounts Payable' : account.name)
+                    : account.name;
+
+                  const displayDesc = isDemo && language === 'en'
+                    ? (account.code === '1001' ? 'Operational petty cash' :
+                       account.code === '1002' ? 'Primary BCA bank account' :
+                       account.code === '1003' ? 'Secondary bank account' :
+                       account.code === '1100' ? 'Receivable from customers' :
+                       account.code === '2000' ? 'Payable to raw suppliers' : (account.description || 'Monitored'))
+                    : (account.description || 'Monitored');
+
                   return (
                     <li key={account.id} className="flex justify-between items-center py-4">
                       <div>
                         <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
-                          {language === 'id' ? account.name : (
-                            account.code === '1001' ? 'Petty Cash' :
-                            account.code === '1002' ? 'Bank BCA Account' :
-                            account.code === '1003' ? 'Bank Mandiri Account' :
-                            account.code === '1100' ? 'Accounts Receivable' :
-                            account.code === '2000' ? 'Accounts Payable' : account.name
-                          )}
+                          {displayName}
                         </p>
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                          {account.code} • {language === 'id' ? (account.description || 'Monitored') : (
-                            account.code === '1001' ? 'Operational petty cash' :
-                            account.code === '1002' ? 'Primary BCA bank account' :
-                            account.code === '1003' ? 'Secondary bank account' :
-                            account.code === '1100' ? 'Receivable from customers' :
-                            account.code === '2000' ? 'Payable to raw suppliers' : (account.description || 'Monitored')
-                          )}
+                          {account.code} • {displayDesc}
                         </p>
                       </div>
                       <p className={`font-bold text-sm ${isNegativeText ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
@@ -199,7 +210,8 @@ const Dashboard: React.FC = () => {
                       </p>
                     </li>
                   );
-                })}
+                })
+              )}
             </ul>
           </div>
 
