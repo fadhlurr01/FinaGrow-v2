@@ -7,22 +7,27 @@ const rawConnStr =
 
 export const sql = postgres(rawConnStr, {
   ssl: 'require',
-  max: 1,              // Serverless best practice: at most 1 connection per lambda
-  idle_timeout: 1,     // Release connection to pool after 1 second of idle
-  max_lifetime: 10,    // Recycle connections quickly to free Aiven slots
+  max: 1,              // 1 connection per serverless function instance
+  idle_timeout: 1,     // Release slot immediately when idle
+  max_lifetime: 10,    // Recycle connections
   connect_timeout: 10,
 });
 
 export async function parseBody(req: any): Promise<any> {
-  if (req.body) {
-    if (typeof req.body === 'object') return req.body;
-    if (typeof req.body === 'string') {
-      try {
-        return JSON.parse(req.body);
-      } catch (_) {
-        return {};
+  try {
+    const raw = req.body;
+    if (raw) {
+      if (typeof raw === 'object') return raw;
+      if (typeof raw === 'string') {
+        try {
+          return JSON.parse(raw);
+        } catch (_) {
+          return {};
+        }
       }
     }
+  } catch (_) {
+    return {};
   }
   return {};
 }
