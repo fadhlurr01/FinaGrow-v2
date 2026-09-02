@@ -1,22 +1,32 @@
 import { Pool } from 'pg';
 
-const connectionString = 
+const connStr = 
   process.env.DATABASE_URL || 
   process.env.POSTGRES_URL || 
   `postgres://${process.env.DB_USERNAME || 'avnadmin'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || 'finagrow-db-finagrow.c.aivencloud.com'}:${process.env.DB_PORT || '10091'}/${process.env.DB_DATABASE || 'defaultdb'}?sslmode=require`;
 
 export const pool = new Pool({
-  connectionString,
+  connectionString: connStr,
   ssl: {
     rejectUnauthorized: false
   },
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
 });
 
+export function parseBody(req: any) {
+  if (!req.body) return {};
+  if (typeof req.body === 'object') return req.body;
+  try {
+    return JSON.parse(req.body);
+  } catch (_) {
+    return {};
+  }
+}
+
 export async function getUserFromToken(req: any) {
-  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'] || req.headers['token'];
   if (!authHeader || typeof authHeader !== 'string') return null;
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!token) return null;

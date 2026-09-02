@@ -1,4 +1,4 @@
-import { getUserFromToken, pool } from './_db';
+import { getUserFromToken, pool, parseBody } from './_db';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,7 +12,8 @@ export default async function handler(req: any, res: any) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-  const { plan } = req.body || {};
+  const body = parseBody(req);
+  const { plan } = body;
   const newPlan = plan === 'Enterprise' ? 'Enterprise' : 'Pro';
 
   try {

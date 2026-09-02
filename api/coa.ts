@@ -1,4 +1,4 @@
-import { getUserFromToken, pool } from './_db';
+import { getUserFromToken, pool, parseBody } from './_db';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,9 +25,11 @@ export default async function handler(req: any, res: any) {
     }
   }
 
+  const body = parseBody(req);
+
   if (req.method === 'POST') {
     try {
-      const c = req.body || {};
+      const c = body;
       const id = c.id || 'AC_' + (c.code || Date.now());
       const insertRes = await pool.query(
         `INSERT INTO coa_accounts (id, user_id, code, name, type, description, parent_account_id, opening_balance, created_at, updated_at)
@@ -46,7 +48,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'PUT') {
     try {
-      const c = req.body || {};
+      const c = body;
       const id = req.query.id || c.id;
       if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
 
@@ -67,7 +69,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'DELETE') {
     try {
-      const id = req.query.id || req.body?.id;
+      const id = req.query.id || body?.id;
       if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
       await pool.query('DELETE FROM coa_accounts WHERE id = $1 AND user_id = $2', [id, user.id]);
       return res.status(200).json({ success: true, message: 'COA Account deleted' });

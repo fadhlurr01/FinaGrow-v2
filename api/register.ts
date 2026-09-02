@@ -1,5 +1,6 @@
-import { pool } from './_db';
+import { pool, parseBody } from './_db';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,7 +15,8 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { name, email, password, phone } = req.body || {};
+  const body = parseBody(req);
+  const { name, email, password, phone } = body;
   if (!name || !email || !password) {
     return res.status(422).json({ success: false, message: 'Nama, email, dan password wajib diisi.' });
   }
@@ -32,10 +34,12 @@ export default async function handler(req: any, res: any) {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+
     const insertRes = await pool.query(
       `INSERT INTO users (name, email, phone, password, role, is_pro, is_banned, api_token, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 'user', false, false, $5, NOW(), NOW()) RETURNING *`,
-      [String(name).trim(), normEmail, phone ? String(phone).trim() : null, String(password), token]
+      [String(name).trim(), normEmail, phone ? String(phone).trim() : null, hashedPassword, token]
     );
     const newUser = insertRes.rows[0];
 

@@ -1,4 +1,4 @@
-import { getUserFromToken, pool } from './_db';
+import { getUserFromToken, pool, parseBody } from './_db';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,9 +27,11 @@ export default async function handler(req: any, res: any) {
     }
   }
 
+  const body = parseBody(req);
+
   if (req.method === 'POST') {
     try {
-      const a = req.body || {};
+      const a = body;
       const id = a.id || 'AST_' + Date.now();
       const insertRes = await pool.query(
         `INSERT INTO assets (id, user_id, code, name, category, purchase_date, purchase_cost, useful_life, depreciation_method, created_at, updated_at)
@@ -49,7 +51,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'PUT') {
     try {
-      const a = req.body || {};
+      const a = body;
       const id = req.query.id || a.id;
       if (!id) return res.status(422).json({ success: false, message: 'Asset ID required' });
 
@@ -70,7 +72,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'DELETE') {
     try {
-      const id = req.query.id || req.body?.id;
+      const id = req.query.id || body?.id;
       if (!id) return res.status(422).json({ success: false, message: 'Asset ID required' });
       await pool.query('DELETE FROM assets WHERE id = $1 AND user_id = $2', [id, user.id]);
       return res.status(200).json({ success: true, message: 'Asset deleted' });

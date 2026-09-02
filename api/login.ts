@@ -1,5 +1,6 @@
-import { pool } from './_db';
+import { pool, parseBody } from './_db';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,7 +15,8 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { email, password } = req.body || {};
+  const body = parseBody(req);
+  const { email, password } = body;
   if (!email || !password) {
     return res.status(422).json({ success: false, message: 'Email dan password wajib diisi.' });
   }
@@ -30,6 +32,22 @@ export default async function handler(req: any, res: any) {
 
     if (user.is_banned) {
       return res.status(403).json({ success: false, message: 'Akun Anda telah dinonaktifkan oleh administrator.' });
+    }
+
+    // Check password: match plaintext or bcrypt hash
+    let isPasswordValid = false;
+    if (user.password === String(password)) {
+      isPasswordValid = true;
+    } else if (user.password && (user.password.startsWith('$2y$') || user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
+      const formattedHash = user.password.replace(/^\$2y\$/, '$2a$');
+      isPasswordValid = await bcrypt.compare(String(password), formattedHash).catch(() => false);
+      if (!isPasswordValid) {
+        isPasswordValid = await bcrypt.compare(String(password), user.password).catch(() => false);
+      }
+    }
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak sesuai.' });
     }
 
     // Token generation

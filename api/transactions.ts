@@ -1,4 +1,4 @@
-import { getUserFromToken, pool } from './_db';
+import { getUserFromToken, pool, parseBody } from './_db';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,9 +25,11 @@ export default async function handler(req: any, res: any) {
     }
   }
 
+  const body = parseBody(req);
+
   if (req.method === 'POST') {
     try {
-      const tx = req.body || {};
+      const tx = body;
       const id = tx.id || 'TX_' + Date.now();
       const insertRes = await pool.query(
         `INSERT INTO transactions (id, user_id, description, amount, date, type, category, status, vendor, customer, payment_method, notes, entity, dr, cr, cur, created_at, updated_at)
@@ -48,7 +50,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'PUT') {
     try {
-      const tx = req.body || {};
+      const tx = body;
       const id = req.query.id || tx.id;
       if (!id) return res.status(422).json({ success: false, message: 'Transaction ID required' });
 
@@ -70,7 +72,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'DELETE') {
     try {
-      const id = req.query.id || req.body?.id;
+      const id = req.query.id || body?.id;
       if (!id) return res.status(422).json({ success: false, message: 'Transaction ID required' });
       await pool.query('DELETE FROM transactions WHERE id = $1 AND user_id = $2', [id, user.id]);
       return res.status(200).json({ success: true, message: 'Transaction deleted' });
