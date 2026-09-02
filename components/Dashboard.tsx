@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Metric, ChartData } from '../types';
 import StatCard from './StatCard';
 import RevenueChart from './RevenueChart';
@@ -11,6 +12,7 @@ import { ArrowUpRight, TrendingUp, DollarSign, Briefcase } from 'lucide-react';
 const Dashboard: React.FC = () => {
   const { language, t } = useLocalization();
   const { state, dispatch } = useFMS();
+  const navigate = useNavigate();
 
   // Dynamic calculations of accounts
   const getAccountBalance = (codeOrId: string) => {
@@ -121,6 +123,7 @@ const Dashboard: React.FC = () => {
 
   const handleGoToCOA = () => {
     dispatch({ type: 'SET_VIEW', payload: 'Chart of Accounts' });
+    navigate('/coa');
   };
 
   return (
