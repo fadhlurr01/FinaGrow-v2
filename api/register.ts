@@ -1,29 +1,30 @@
-import { pool, parseBody } from './_db';
+import { getPool, parseBody } from './_db';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
-  }
-
-  const body = parseBody(req);
-  const { name, email, password, phone } = body;
-  if (!name || !email || !password) {
-    return res.status(422).json({ success: false, message: 'Nama, email, dan password wajib diisi.' });
-  }
-
-  const normEmail = String(email).trim().toLowerCase();
-
   try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ success: false, message: 'Method not allowed' });
+    }
+
+    const body = parseBody(req);
+    const { name, email, password, phone } = body;
+    if (!name || !email || !password) {
+      return res.status(422).json({ success: false, message: 'Nama, email, dan password wajib diisi.' });
+    }
+
+    const normEmail = String(email).trim().toLowerCase();
+    const pool = getPool();
+
     const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1', [normEmail]);
     if (existing.rows.length > 0) {
       return res.status(422).json({

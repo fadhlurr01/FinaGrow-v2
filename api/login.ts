@@ -1,28 +1,30 @@
-import { pool, parseBody } from './_db';
+import { getPool, parseBody } from './_db';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
-  }
-
-  const body = parseBody(req);
-  const { email, password } = body;
-  if (!email || !password) {
-    return res.status(422).json({ success: false, message: 'Email dan password wajib diisi.' });
-  }
-
   try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ success: false, message: 'Method not allowed' });
+    }
+
+    const body = parseBody(req);
+    const { email, password } = body;
+    if (!email || !password) {
+      return res.status(422).json({ success: false, message: 'Email dan password wajib diisi.' });
+    }
+
     const normEmail = String(email).trim().toLowerCase();
+    const pool = getPool();
+
     const userRes = await pool.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [normEmail]);
     const user = userRes.rows[0];
 
