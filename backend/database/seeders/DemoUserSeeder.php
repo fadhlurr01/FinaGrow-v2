@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\Asset;
+use App\Models\CoaAccount;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -20,6 +21,7 @@ class DemoUserSeeder extends Seeder
         // Truncate tables for completely clean seed
         Transaction::truncate();
         Asset::truncate();
+        CoaAccount::truncate();
 
         // 1. Demo Admin (Enterprise Pro)
         $demoAdmin = User::updateOrCreate(
@@ -334,5 +336,36 @@ class DemoUserSeeder extends Seeder
             'useful_life' => 8,
             'depreciation_method' => 'STRAIGHT LINE',
         ]);
+
+        // Seed Enterprise Chart of Accounts
+        $coas = [
+            ['code' => '1001', 'name' => 'Kas Kecil Cabang Jakarta', 'description' => 'Kas kecil operasional HO', 'type' => 'Asset', 'opening_balance' => 15000000],
+            ['code' => '1002', 'name' => 'Bank BCA Priority', 'description' => 'Rekening bank utama perusahaan', 'type' => 'Asset', 'opening_balance' => 1250000000],
+            ['code' => '1003', 'name' => 'Bank Mandiri Corporate', 'description' => 'Rekening bank giro', 'type' => 'Asset', 'opening_balance' => 680000000],
+            ['code' => '1100', 'name' => 'Piutang Usaha Korporat', 'description' => 'Piutang institusi klien', 'type' => 'Asset', 'opening_balance' => 450000000],
+            ['code' => '1200', 'name' => 'Persediaan Finished Goods', 'description' => 'Persediaan barang utama', 'type' => 'Asset', 'opening_balance' => 1200000000],
+            ['code' => '1500', 'name' => 'Aset Tetap Gedung Merdeka', 'description' => 'Gedung pencakar langit', 'type' => 'Asset', 'opening_balance' => 5500000000],
+            ['code' => '2000', 'name' => 'Utang Dagang Supplier', 'description' => 'Utang bahan baku', 'type' => 'Liability', 'opening_balance' => 240000000],
+            ['code' => '2100', 'name' => 'Utang PPN Masukan', 'description' => 'PPN 11%', 'type' => 'Liability', 'opening_balance' => 75000000],
+            ['code' => '3000', 'name' => 'Modal Ventura Seri-A', 'description' => 'Modal disetor investor', 'type' => 'Equity', 'opening_balance' => 8000000000],
+            ['code' => '4000', 'name' => 'Pendapatan Kontrak Software', 'description' => 'Pendapatan subscription enterprise', 'type' => 'Revenue', 'opening_balance' => 0],
+            ['code' => '4100', 'name' => 'Pendapatan Lisensi API', 'description' => 'Pendapatan integrasi API', 'type' => 'Revenue', 'opening_balance' => 0],
+            ['code' => '5000', 'name' => 'HPP Layanan Cloud', 'description' => 'Biaya server AWS/Google Cloud', 'type' => 'Expense', 'opening_balance' => 0],
+            ['code' => '5100', 'name' => 'Beban Gaji Direksi & Staf', 'description' => 'Beban kompensasi tim', 'type' => 'Expense', 'opening_balance' => 0],
+            ['code' => '5200', 'name' => 'Beban Sewa Data Center', 'description' => 'Sewa fasilitas rack', 'type' => 'Expense', 'opening_balance' => 0],
+            ['code' => '5300', 'name' => 'Beban Marketing Campaign', 'description' => 'Ads & PR outreach', 'type' => 'Expense', 'opening_balance' => 0],
+        ];
+
+        foreach ($coas as $c) {
+            CoaAccount::create([
+                'id' => 'AC_' . $c['code'],
+                'user_id' => $user->id,
+                'code' => $c['code'],
+                'name' => $c['name'],
+                'description' => $c['description'],
+                'type' => $c['type'],
+                'opening_balance' => $c['opening_balance'],
+            ]);
+        }
     }
 }

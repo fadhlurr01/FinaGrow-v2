@@ -5,7 +5,7 @@ import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
 import { useLocalization } from '../hooks/useLocalization';
 
 const ChartOfAccounts: React.FC = () => {
-  const { state, dispatch } = useFMS();
+  const { state, createCoaApi, updateCoaApi, deleteCoaApi } = useFMS();
   const { language, t } = useLocalization();
 
   // Modal States
@@ -57,46 +57,38 @@ const ChartOfAccounts: React.FC = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleSaveAdd = (e: React.FormEvent) => {
+  const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code || !formData.name) {
       alert(t('codeAndNameRequired') || 'Code and Name are required');
       return;
     }
-    const uid = 'COA-' + Date.now();
-    dispatch({ 
-      type: 'ADD_COA_ACCOUNT', 
-      payload: { ...formData, id: uid } 
-    });
+    await createCoaApi(formData);
     setIsAddModalOpen(false);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAccount) return;
     if (!formData.code || !formData.name) {
       alert(t('codeAndNameRequired') || 'Code and Name are required');
       return;
     }
-    dispatch({
-      type: 'EDIT_COA_ACCOUNT',
-      payload: { 
-        ...editingAccount, 
-        code: formData.code,
-        name: formData.name,
-        type: formData.type,
-        description: formData.description,
-        parentAccountId: formData.parentAccountId,
-        openingBalance: formData.openingBalance
-      }
+    await updateCoaApi(editingAccount.id, {
+      code: formData.code,
+      name: formData.name,
+      type: formData.type,
+      description: formData.description,
+      parentAccountId: formData.parentAccountId,
+      openingBalance: formData.openingBalance
     });
     setIsEditModalOpen(false);
     setEditingAccount(null);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteAccountId) {
-      dispatch({ type: 'DELETE_COA_ACCOUNT', payload: deleteAccountId });
+      await deleteCoaApi(deleteAccountId);
       setIsDeleteConfirmOpen(false);
       setDeleteAccountId(null);
     }

@@ -112,6 +112,26 @@ export const assetsApi = {
   },
 };
 
+// --- CHART OF ACCOUNTS (COA) API SERVICE ---
+export const coaApi = {
+  getAll: async () => {
+    const res = await api.get('/coa');
+    return res.data;
+  },
+  create: async (accountData: any) => {
+    const res = await api.post('/coa', accountData);
+    return res.data;
+  },
+  update: async (id: string, accountData: any) => {
+    const res = await api.put(`/coa/${id}`, accountData);
+    return res.data;
+  },
+  delete: async (id: string) => {
+    const res = await api.delete(`/coa/${id}`);
+    return res.data;
+  },
+};
+
 // --- SUBSCRIPTIONS API SERVICE ---
 export const subscriptionsApi = {
   getCurrent: async () => {

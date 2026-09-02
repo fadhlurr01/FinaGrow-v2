@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\CoaController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Middleware\AuthenticateApiToken;
 
@@ -39,6 +40,9 @@ Route::middleware(AuthenticateApiToken::class)->group(function () {
 
     // Assets Management CRUD
     Route::apiResource('assets', AssetController::class);
+
+    // Chart of Accounts (COA) Management CRUD
+    Route::apiResource('coa', CoaController::class);
 
     // Subscriptions & Pro Upgrade
     Route::get('/subscription/current', [SubscriptionController::class, 'current']);

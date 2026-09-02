@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, useContext, useEffect, useCallback, useState } from 'react';
-import { FMSState, Budget, Project, Transaction } from '../types';
-import { transactionsApi, assetsApi, authApi, subscriptionsApi } from '../services/api';
+import { FMSState, Budget, Project, Transaction, COAAccount } from '../types';
+import { transactionsApi, assetsApi, coaApi, authApi, subscriptionsApi } from '../services/api';
 
 const uid = (p = 'ID') => p + Math.random().toString(36).slice(2, 8).toUpperCase();
 const today = () => new Date().toISOString().slice(0, 10);
@@ -519,7 +519,7 @@ export const DEFAULT_CLEAN_STATE: FMSState = {
     { id: 'E1', code: 'HQ', name: 'Entitas Utama', currency: 'IDR' }
   ],
   users: [],
-  coa: DEMO_COA.map(acc => ({ ...acc, openingBalance: 0 })),
+  coa: [],
   transactions: [],
   invoices: [],
   budgets: [],
@@ -553,6 +553,7 @@ type Action =
   | { type: 'ADD_ASSET'; payload: any }
   | { type: 'EDIT_ASSET'; payload: any }
   | { type: 'DELETE_ASSET'; payload: string }
+  | { type: 'SET_COA'; payload: COAAccount[] }
   | { type: 'ADD_COA_ACCOUNT'; payload: any }
   | { type: 'EDIT_COA_ACCOUNT'; payload: any }
   | { type: 'DELETE_COA_ACCOUNT'; payload: string }
@@ -705,11 +706,19 @@ const fmsReducer = (state: FMSState, action: Action): FMSState => {
         invoices: state.invoices.filter(inv => inv.id !== action.payload)
       };
 
-    case 'ADD_COA_ACCOUNT':
+    case 'SET_COA':
       return {
         ...state,
-        coa: [...state.coa, { ...action.payload, id: uid('AC') }]
+        coa: action.payload
       };
+
+    case 'ADD_COA_ACCOUNT': {
+      const newAcc = { ...action.payload, id: action.payload.id || uid('AC') };
+      return {
+        ...state,
+        coa: [...state.coa.filter(a => a.id !== newAcc.id), newAcc]
+      };
+    }
 
     case 'EDIT_COA_ACCOUNT':
       return {
@@ -848,6 +857,9 @@ interface FMSContextType {
   createAssetApi: (asset: any) => Promise<any>;
   updateAssetApi: (id: string, asset: any) => Promise<any>;
   deleteAssetApi: (id: string) => Promise<any>;
+  createCoaApi: (account: Partial<COAAccount>) => Promise<any>;
+  updateCoaApi: (id: string, account: Partial<COAAccount>) => Promise<any>;
+  deleteCoaApi: (id: string) => Promise<any>;
   upgradeToProApi: (plan?: 'Pro' | 'Enterprise') => Promise<any>;
 }
 
@@ -862,6 +874,9 @@ const FMSContext = createContext<FMSContextType>({
   createAssetApi: async () => {},
   updateAssetApi: async () => {},
   deleteAssetApi: async () => {},
+  createCoaApi: async () => {},
+  updateCoaApi: async () => {},
+  deleteCoaApi: async () => {},
   upgradeToProApi: async () => {},
 });
 
@@ -910,6 +925,12 @@ export const FMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const assetRes = await assetsApi.getAll();
       if (assetRes && assetRes.success && Array.isArray(assetRes.data)) {
         dispatch({ type: 'SET_ASSETS', payload: assetRes.data });
+      }
+
+      // 4. Fetch Chart of Accounts from Laravel MySQL
+      const coaRes = await coaApi.getAll();
+      if (coaRes && coaRes.success && Array.isArray(coaRes.data)) {
+        dispatch({ type: 'SET_COA', payload: coaRes.data });
       }
     } catch (err) {
       console.warn('API Sync notice (Local mock fallback active):', err);
@@ -1007,6 +1028,41 @@ export const FMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'DELETE_ASSET', payload: id });
   };
 
+  // Async API Helper: Create COA Account
+  const createCoaApi = async (accountData: any) => {
+    try {
+      const res = await coaApi.create(accountData);
+      if (res && res.data) {
+        dispatch({ type: 'ADD_COA_ACCOUNT', payload: res.data });
+        return res.data;
+      }
+    } catch (e) {
+      console.warn('API COA create fallback:', e);
+    }
+    dispatch({ type: 'ADD_COA_ACCOUNT', payload: accountData });
+    return accountData;
+  };
+
+  // Async API Helper: Update COA Account
+  const updateCoaApi = async (id: string, accountData: any) => {
+    try {
+      await coaApi.update(id, accountData);
+    } catch (e) {
+      console.warn('API COA update fallback:', e);
+    }
+    dispatch({ type: 'EDIT_COA_ACCOUNT', payload: { ...accountData, id } });
+  };
+
+  // Async API Helper: Delete COA Account
+  const deleteCoaApi = async (id: string) => {
+    try {
+      await coaApi.delete(id);
+    } catch (e) {
+      console.warn('API COA delete fallback:', e);
+    }
+    dispatch({ type: 'DELETE_COA_ACCOUNT', payload: id });
+  };
+
   // Async API Helper: Upgrade to Pro
   const upgradeToProApi = async (plan: 'Pro' | 'Enterprise' = 'Pro') => {
     try {
@@ -1033,6 +1089,9 @@ export const FMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createAssetApi,
       updateAssetApi,
       deleteAssetApi,
+      createCoaApi,
+      updateCoaApi,
+      deleteCoaApi,
       upgradeToProApi
     }}>
       {children}

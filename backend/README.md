@@ -62,6 +62,10 @@ Backend API akan berjalan di: `http://127.0.0.1:8000/api`
 | `GET` | `/api/transactions/summary` | Ringkasan metrik (Total Income, Expense, Net) | Bearer Token |
 | `GET` | `/api/assets` | Mengambil daftar aset perusahaan | Bearer Token |
 | `POST` | `/api/assets` | Menambah aset terdaftar baru | Bearer Token |
+| `GET` | `/api/coa` | Mengambil daftar Chart of Accounts (COA) | Bearer Token |
+| `POST` | `/api/coa` | Menambah akun COA baru | Bearer Token |
+| `PUT` | `/api/coa/{id}` | Mengubah data akun COA | Bearer Token |
+| `DELETE` | `/api/coa/{id}` | Menghapus akun COA | Bearer Token |
 | `POST` | `/api/subscription/upgrade` | Upgrade akun ke status Pro | Bearer Token |
 
 ---
