@@ -39,7 +39,7 @@ const Assets: React.FC = () => {
 
   // Use assets from FMSContext state directly
   const assets: Asset[] = useMemo(() => {
-    const rawAssets = state.assets && state.assets.length > 0 ? state.assets : DEFAULT_ASSETS;
+    const rawAssets = Array.isArray(state.assets) ? state.assets : [];
     
     // Self-healing: repair empty/zero values if any exist
     return rawAssets.map(a => {

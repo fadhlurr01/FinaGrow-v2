@@ -315,7 +315,7 @@ export const DEMO_USER_TRANSACTIONS: Transaction[] = [
   {
     id: 'JE-0001',
     description: 'Penjualan Retail Kasir Sesi Pagi',
-    date: '2026-09-01',
+    date: '2026-09-02',
     type: 'income',
     category: 'Sales',
     amount: 3500000,
@@ -326,12 +326,12 @@ export const DEMO_USER_TRANSACTIONS: Transaction[] = [
     cr: 'AC_4000',
     cur: 'IDR',
     entity: 'E1',
-    notes: 'Penerimaan tunai kasir pagi.'
+    notes: 'Penerimaan tunai kasir sesi pagi.'
   },
   {
     id: 'JE-0002',
     description: 'Belanja Stok Sembako Pasar Anyar',
-    date: '2026-08-31',
+    date: '2026-09-01',
     type: 'expense',
     category: 'Operational',
     amount: 1800000,
@@ -347,13 +347,13 @@ export const DEMO_USER_TRANSACTIONS: Transaction[] = [
   {
     id: 'JE-0003',
     description: 'Gaji Bulanan 2 Kasir Toko',
-    date: '2026-08-30',
+    date: '2026-08-31',
     type: 'expense',
     category: 'Payroll',
     amount: 5000000,
     status: 'Completed',
     vendor: 'Kasir Toko',
-    payment_method: 'Bank Transfer (Jatim)',
+    payment_method: 'Bank Transfer (Bank Jatim)',
     dr: 'AC_5100',
     cr: 'AC_1002',
     cur: 'IDR',
@@ -378,7 +378,7 @@ export const DEMO_USER_VENDORS: Vendor[] = [
     name: 'CV. Mandiri Sembako',
     contactPerson: 'Haji Mukhtar',
     email: 'grosir.mukhtar@gmail.com',
-    phone: '0812-7000-8300',
+    phone: '0812-7000-8000',
     outstandingBalance: 12000000
   }
 ];
@@ -391,8 +391,8 @@ export const DEMO_USER_INVOICES: Invoice[] = [
       name: 'Katering Ibu Rahma',
       email: 'rahma@gmail.com'
     },
-    issueDate: '2026-08-28',
-    dueDate: '2026-09-02',
+    issueDate: '2026-08-29',
+    dueDate: '2026-09-03',
     amount: 7500000,
     status: 'Pending',
     type: 'AR',
@@ -406,6 +406,31 @@ export const DEMO_USER_INVOICES: Invoice[] = [
 
 export const DEMO_USER_ENTITIES = [
   { id: 'E1', code: 'RT', name: 'Retail Sentosa Abadi', currency: 'IDR' as const }
+];
+
+export const DEMO_USER_INVENTORY = [
+  {
+    id: 'INV-USR-01',
+    sku: 'SB-01',
+    name: 'Beras Premium Rajalele 10kg',
+    category: 'Food',
+    quantity: 40,
+    unit: 'bags',
+    unitCost: 145000,
+    valuationMethod: 'FIFO',
+    totalValue: 5800000
+  },
+  {
+    id: 'INV-USR-02',
+    sku: 'MG-02',
+    name: 'Minyak Goreng Bimoli 2L',
+    category: 'Food',
+    quantity: 120,
+    unit: 'bottles',
+    unitCost: 34000,
+    valuationMethod: 'AVCO',
+    totalValue: 4080000
+  }
 ];
 
 export const DEMO_USER_ASSETS = [
@@ -483,7 +508,7 @@ export const DEFAULT_DEMO_USER_STATE: FMSState = {
   invoices: DEMO_USER_INVOICES,
   budgets: DEMO_USER_BUDGETS,
   assets: DEMO_USER_ASSETS,
-  inventory: [],
+  inventory: DEMO_USER_INVENTORY,
   projects: [],
   vendors: DEMO_USER_VENDORS,
   payrollRuns: [],

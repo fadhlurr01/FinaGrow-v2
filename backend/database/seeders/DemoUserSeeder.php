@@ -231,7 +231,7 @@ class DemoUserSeeder extends Seeder
     }
 
     /**
-     * Seed exactly matching Retail transactions for Demo User (Screenshot_1967).
+     * Seed exactly matching Retail transactions for Demo User (Screenshot_1967 / Retail UKM).
      */
     public static function seedExactRetailUserTransactions(User $user, string $prefix = 'JU'): void
     {
@@ -241,27 +241,27 @@ class DemoUserSeeder extends Seeder
                 'user_id' => $user->id,
                 'description' => 'Penjualan Retail Kasir Sesi Pagi',
                 'amount' => 3500000,
-                'date' => '2026-09-01',
+                'date' => '2026-09-02',
                 'type' => 'income',
                 'category' => 'Sales',
                 'status' => 'Completed',
                 'vendor' => null,
                 'customer' => 'Pelanggan Retail',
                 'payment_method' => 'Cash',
-                'notes' => 'Penerimaan tunai kasir pagi.',
+                'notes' => 'Penerimaan tunai kasir sesi pagi.',
                 'entity' => 'E1',
                 'dr' => 'AC_1001',
                 'cr' => 'AC_4000',
                 'cur' => 'IDR',
-                'created_at' => '2026-09-01 09:00:00',
-                'updated_at' => '2026-09-01 09:00:00',
+                'created_at' => '2026-09-02 09:00:00',
+                'updated_at' => '2026-09-02 09:00:00',
             ],
             [
                 'id' => $prefix . '-0002',
                 'user_id' => $user->id,
                 'description' => 'Belanja Stok Sembako Pasar Anyar',
                 'amount' => 1800000,
-                'date' => '2026-08-31',
+                'date' => '2026-09-01',
                 'type' => 'expense',
                 'category' => 'Operational',
                 'status' => 'Completed',
@@ -273,28 +273,28 @@ class DemoUserSeeder extends Seeder
                 'dr' => 'AC_1200',
                 'cr' => 'AC_1001',
                 'cur' => 'IDR',
-                'created_at' => '2026-08-31 11:00:00',
-                'updated_at' => '2026-08-31 11:00:00',
+                'created_at' => '2026-09-01 11:00:00',
+                'updated_at' => '2026-09-01 11:00:00',
             ],
             [
                 'id' => $prefix . '-0003',
                 'user_id' => $user->id,
                 'description' => 'Gaji Bulanan 2 Kasir Toko',
                 'amount' => 5000000,
-                'date' => '2026-08-30',
+                'date' => '2026-08-31',
                 'type' => 'expense',
                 'category' => 'Payroll',
                 'status' => 'Completed',
                 'vendor' => 'Kasir Toko',
                 'customer' => null,
-                'payment_method' => 'Bank Transfer (Jatim)',
+                'payment_method' => 'Bank Transfer (Bank Jatim)',
                 'notes' => 'Gaji bulanan penjaga kasir.',
                 'entity' => 'E1',
                 'dr' => 'AC_5100',
                 'cr' => 'AC_1002',
                 'cur' => 'IDR',
-                'created_at' => '2026-08-30 15:00:00',
-                'updated_at' => '2026-08-30 15:00:00',
+                'created_at' => '2026-08-31 15:00:00',
+                'updated_at' => '2026-08-31 15:00:00',
             ],
         ];
 
@@ -302,7 +302,7 @@ class DemoUserSeeder extends Seeder
             Transaction::create($tx);
         }
 
-        // 3 Fixed Assets matching Screenshot (MacBook, Ruko, Avanza)
+        // 3 Fixed Assets matching (MacBook, Ruko, Avanza)
         Asset::create([
             'id' => 'AST-' . $prefix . '-01',
             'user_id' => $user->id,
@@ -337,23 +337,17 @@ class DemoUserSeeder extends Seeder
             'depreciation_method' => 'STRAIGHT LINE',
         ]);
 
-        // Seed Enterprise Chart of Accounts
+        // Seed Retail Chart of Accounts for Demo User
         $coas = [
-            ['code' => '1001', 'name' => 'Kas Kecil Cabang Jakarta', 'description' => 'Kas kecil operasional HO', 'type' => 'Asset', 'opening_balance' => 15000000],
-            ['code' => '1002', 'name' => 'Bank BCA Priority', 'description' => 'Rekening bank utama perusahaan', 'type' => 'Asset', 'opening_balance' => 1250000000],
-            ['code' => '1003', 'name' => 'Bank Mandiri Corporate', 'description' => 'Rekening bank giro', 'type' => 'Asset', 'opening_balance' => 680000000],
-            ['code' => '1100', 'name' => 'Piutang Usaha Korporat', 'description' => 'Piutang institusi klien', 'type' => 'Asset', 'opening_balance' => 450000000],
-            ['code' => '1200', 'name' => 'Persediaan Finished Goods', 'description' => 'Persediaan barang utama', 'type' => 'Asset', 'opening_balance' => 1200000000],
-            ['code' => '1500', 'name' => 'Aset Tetap Gedung Merdeka', 'description' => 'Gedung pencakar langit', 'type' => 'Asset', 'opening_balance' => 5500000000],
-            ['code' => '2000', 'name' => 'Utang Dagang Supplier', 'description' => 'Utang bahan baku', 'type' => 'Liability', 'opening_balance' => 240000000],
-            ['code' => '2100', 'name' => 'Utang PPN Masukan', 'description' => 'PPN 11%', 'type' => 'Liability', 'opening_balance' => 75000000],
-            ['code' => '3000', 'name' => 'Modal Ventura Seri-A', 'description' => 'Modal disetor investor', 'type' => 'Equity', 'opening_balance' => 8000000000],
-            ['code' => '4000', 'name' => 'Pendapatan Kontrak Software', 'description' => 'Pendapatan subscription enterprise', 'type' => 'Revenue', 'opening_balance' => 0],
-            ['code' => '4100', 'name' => 'Pendapatan Lisensi API', 'description' => 'Pendapatan integrasi API', 'type' => 'Revenue', 'opening_balance' => 0],
-            ['code' => '5000', 'name' => 'HPP Layanan Cloud', 'description' => 'Biaya server AWS/Google Cloud', 'type' => 'Expense', 'opening_balance' => 0],
-            ['code' => '5100', 'name' => 'Beban Gaji Direksi & Staf', 'description' => 'Beban kompensasi tim', 'type' => 'Expense', 'opening_balance' => 0],
-            ['code' => '5200', 'name' => 'Beban Sewa Data Center', 'description' => 'Sewa fasilitas rack', 'type' => 'Expense', 'opening_balance' => 0],
-            ['code' => '5300', 'name' => 'Beban Marketing Campaign', 'description' => 'Ads & PR outreach', 'type' => 'Expense', 'opening_balance' => 0],
+            ['code' => '1001', 'name' => 'Cash Register Laci Utama', 'description' => 'Uang tunai cash register', 'type' => 'Asset', 'opening_balance' => 2500000],
+            ['code' => '1002', 'name' => 'Bank Jatim UKM', 'description' => 'Rekening operasional bank lokal', 'type' => 'Asset', 'opening_balance' => 45000000],
+            ['code' => '1100', 'name' => 'Piutang Langganan Warung', 'description' => 'Piutang retail kecil', 'type' => 'Asset', 'opening_balance' => 7500000],
+            ['code' => '1200', 'name' => 'Persediaan Sembako & Barang', 'description' => 'Stok dagangan toko', 'type' => 'Asset', 'opening_balance' => 50000000],
+            ['code' => '2000', 'name' => 'Utang Agen Supplier Sembako', 'description' => 'Utang ke grosiran', 'type' => 'Liability', 'opening_balance' => 12000000],
+            ['code' => '3000', 'name' => 'Modal Muklas Pribadi', 'description' => 'Modal awal pendiri toko', 'type' => 'Equity', 'opening_balance' => 93000000],
+            ['code' => '4000', 'name' => 'Pendapatan Retail Harian', 'description' => 'Penjualan retail langsung sembako', 'type' => 'Revenue', 'opening_balance' => 0],
+            ['code' => '5100', 'name' => 'Beban Gaji Karyawan Toko', 'description' => 'Gaji penjaga kasir', 'type' => 'Expense', 'opening_balance' => 0],
+            ['code' => '5200', 'name' => 'Beban Listrik & Air Ruko', 'description' => 'Biaya utilitas toko bulanan', 'type' => 'Expense', 'opening_balance' => 0],
         ];
 
         foreach ($coas as $c) {
