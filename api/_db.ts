@@ -7,8 +7,9 @@ const rawConnStr =
 
 export const sql = postgres(rawConnStr, {
   ssl: 'require',
-  max: 5,
-  idle_timeout: 20,
+  max: 1,              // Serverless best practice: at most 1 connection per lambda
+  idle_timeout: 1,     // Release connection to pool after 1 second of idle
+  max_lifetime: 10,    // Recycle connections quickly to free Aiven slots
   connect_timeout: 10,
 });
 
