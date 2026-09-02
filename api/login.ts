@@ -16,7 +16,7 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 
-    const body = parseBody(req);
+    const body = await parseBody(req);
     const { email, password } = body;
     if (!email || !password) {
       return res.status(422).json({ success: false, message: 'Email dan password wajib diisi.' });

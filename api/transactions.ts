@@ -26,7 +26,7 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    const body = parseBody(req);
+    const body = await parseBody(req);
 
     if (req.method === 'POST') {
       try {

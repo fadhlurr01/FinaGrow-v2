@@ -12,14 +12,36 @@ export const sql = postgres(rawConnStr, {
   connect_timeout: 10,
 });
 
-export function parseBody(req: any) {
-  if (!req.body) return {};
-  if (typeof req.body === 'object') return req.body;
+export async function parseBody(req: any): Promise<any> {
   try {
-    return JSON.parse(req.body);
-  } catch (_) {
-    return {};
-  }
+    if (req.body && typeof req.body === 'object') return req.body;
+    if (typeof req.body === 'string') {
+      try {
+        return JSON.parse(req.body);
+      } catch (_) {
+        return {};
+      }
+    }
+  } catch (_) {}
+
+  return new Promise((resolve) => {
+    try {
+      let raw = '';
+      req.on('data', (chunk: any) => {
+        raw += chunk;
+      });
+      req.on('end', () => {
+        try {
+          resolve(raw ? JSON.parse(raw) : {});
+        } catch (_) {
+          resolve({});
+        }
+      });
+      req.on('error', () => resolve({}));
+    } catch (_) {
+      resolve({});
+    }
+  });
 }
 
 export async function getUserFromToken(req: any) {

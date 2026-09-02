@@ -13,7 +13,7 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const body = parseBody(req);
+    const body = await parseBody(req);
     const { plan } = body;
     const newPlan = plan === 'Enterprise' ? 'Enterprise' : 'Pro';
 
