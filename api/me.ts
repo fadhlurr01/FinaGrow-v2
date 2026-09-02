@@ -1,4 +1,4 @@
-import { getUserFromToken, getPool } from './_db';
+import { getUserFromToken, sql } from './_db';
 
 export default async function handler(req: any, res: any) {
   try {
@@ -13,9 +13,7 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const pool = getPool();
-    const subRes = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY id DESC LIMIT 1', [user.id]);
-    const sub = subRes.rows[0];
+    const [sub] = await sql`SELECT * FROM subscriptions WHERE user_id = ${user.id} ORDER BY id DESC LIMIT 1`;
 
     return res.status(200).json({
       success: true,

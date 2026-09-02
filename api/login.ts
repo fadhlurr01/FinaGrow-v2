@@ -1,4 +1,4 @@
-import { getPool, parseBody } from './_db';
+import { sql, parseBody } from './_db';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -23,10 +23,8 @@ export default async function handler(req: any, res: any) {
     }
 
     const normEmail = String(email).trim().toLowerCase();
-    const pool = getPool();
 
-    const userRes = await pool.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [normEmail]);
-    const user = userRes.rows[0];
+    const [user] = await sql`SELECT * FROM users WHERE LOWER(email) = ${normEmail} LIMIT 1`;
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak sesuai.' });
@@ -56,12 +54,11 @@ export default async function handler(req: any, res: any) {
     let token = user.api_token;
     if (!token) {
       token = crypto.randomBytes(32).toString('hex');
-      await pool.query('UPDATE users SET api_token = $1 WHERE id = $2', [token, user.id]);
+      await sql`UPDATE users SET api_token = ${token} WHERE id = ${user.id}`;
     }
 
     // Get active subscription
-    const subRes = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY id DESC LIMIT 1', [user.id]);
-    const sub = subRes.rows[0];
+    const [sub] = await sql`SELECT * FROM subscriptions WHERE user_id = ${user.id} ORDER BY id DESC LIMIT 1`;
 
     return res.status(200).json({
       success: true,

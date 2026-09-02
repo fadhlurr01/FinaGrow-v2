@@ -1,4 +1,4 @@
-import { getPool, parseBody } from './_db';
+import { sql, parseBody } from './_db';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -23,10 +23,9 @@ export default async function handler(req: any, res: any) {
     }
 
     const normEmail = String(email).trim().toLowerCase();
-    const pool = getPool();
 
-    const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1', [normEmail]);
-    if (existing.rows.length > 0) {
+    const existing = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail} LIMIT 1`;
+    if (existing.length > 0) {
       return res.status(422).json({
         success: false,
         message: 'Email sudah terdaftar.',
@@ -37,19 +36,17 @@ export default async function handler(req: any, res: any) {
     const token = crypto.randomBytes(32).toString('hex');
     const hashedPassword = await bcrypt.hash(String(password), 10);
 
-    const insertRes = await pool.query(
-      `INSERT INTO users (name, email, phone, password, role, is_pro, is_banned, api_token, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, 'user', false, false, $5, NOW(), NOW()) RETURNING *`,
-      [String(name).trim(), normEmail, phone ? String(phone).trim() : null, hashedPassword, token]
-    );
-    const newUser = insertRes.rows[0];
+    const [newUser] = await sql`
+      INSERT INTO users (name, email, phone, password, role, is_pro, is_banned, api_token, created_at, updated_at)
+      VALUES (${String(name).trim()}, ${normEmail}, ${phone ? String(phone).trim() : null}, ${hashedPassword}, 'user', false, false, ${token}, NOW(), NOW())
+      RETURNING *
+    `;
 
     // Create free subscription
-    await pool.query(
-      `INSERT INTO subscriptions (user_id, plan, status, price, start_date, end_date, created_at, updated_at)
-       VALUES ($1, 'Free', 'active', 0, NOW(), NOW() + INTERVAL '10 years', NOW(), NOW())`,
-      [newUser.id]
-    );
+    await sql`
+      INSERT INTO subscriptions (user_id, plan, status, price, start_date, end_date, created_at, updated_at)
+      VALUES (${newUser.id}, 'Free', 'active', 0, NOW(), NOW() + INTERVAL '10 years', NOW(), NOW())
+    `;
 
     return res.status(201).json({
       success: true,

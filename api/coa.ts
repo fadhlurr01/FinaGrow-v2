@@ -1,4 +1,4 @@
-import { getUserFromToken, getPool, parseBody } from './_db';
+import { getUserFromToken, sql, parseBody } from './_db';
 
 export default async function handler(req: any, res: any) {
   try {
@@ -13,16 +13,14 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const pool = getPool();
-
     if (req.method === 'GET') {
       try {
-        const coaRes = await pool.query('SELECT * FROM coa_accounts WHERE user_id = $1 ORDER BY code ASC', [user.id]);
-        const rows = coaRes.rows.map((r: any) => ({
+        const rows = await sql`SELECT * FROM coa_accounts WHERE user_id = ${user.id} ORDER BY code ASC`;
+        const mapped = rows.map((r: any) => ({
           ...r,
           openingBalance: Number(r.opening_balance)
         }));
-        return res.status(200).json({ success: true, data: rows });
+        return res.status(200).json({ success: true, data: mapped });
       } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });
       }
@@ -34,16 +32,16 @@ export default async function handler(req: any, res: any) {
       try {
         const c = body;
         const id = c.id || 'AC_' + (c.code || Date.now());
-        const insertRes = await pool.query(
-          `INSERT INTO coa_accounts (id, user_id, code, name, type, description, parent_account_id, opening_balance, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *`,
-          [
-            id, user.id, String(c.code).trim(), String(c.name).trim(),
-            c.type || 'Asset', c.description || null, c.parent_account_id || null,
-            Number(c.opening_balance || c.openingBalance) || 0
-          ]
-        );
-        return res.status(201).json({ success: true, data: insertRes.rows[0] });
+        const [newCoa] = await sql`
+          INSERT INTO coa_accounts (id, user_id, code, name, type, description, parent_account_id, opening_balance, created_at, updated_at)
+          VALUES (
+            ${id}, ${user.id}, ${String(c.code).trim()}, ${String(c.name).trim()},
+            ${c.type || 'Asset'}, ${c.description || null}, ${c.parent_account_id || null},
+            ${Number(c.opening_balance || c.openingBalance) || 0},
+            NOW(), NOW()
+          ) RETURNING *
+        `;
+        return res.status(201).json({ success: true, data: newCoa });
       } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });
       }
@@ -55,16 +53,19 @@ export default async function handler(req: any, res: any) {
         const id = req.query.id || c.id;
         if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
 
-        const updateRes = await pool.query(
-          `UPDATE coa_accounts SET code = $1, name = $2, type = $3, description = $4, parent_account_id = $5, opening_balance = $6, updated_at = NOW()
-           WHERE id = $7 AND user_id = $8 RETURNING *`,
-          [
-            String(c.code).trim(), String(c.name).trim(), c.type || 'Asset',
-            c.description || null, c.parent_account_id || null,
-            Number(c.opening_balance || c.openingBalance) || 0, id, user.id
-          ]
-        );
-        return res.status(200).json({ success: true, data: updateRes.rows[0] });
+        const [updatedCoa] = await sql`
+          UPDATE coa_accounts SET 
+            code = ${String(c.code).trim()}, 
+            name = ${String(c.name).trim()}, 
+            type = ${c.type || 'Asset'}, 
+            description = ${c.description || null}, 
+            parent_account_id = ${c.parent_account_id || null}, 
+            opening_balance = ${Number(c.opening_balance || c.openingBalance) || 0}, 
+            updated_at = NOW()
+          WHERE id = ${id} AND user_id = ${user.id}
+          RETURNING *
+        `;
+        return res.status(200).json({ success: true, data: updatedCoa });
       } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });
       }
@@ -74,7 +75,7 @@ export default async function handler(req: any, res: any) {
       try {
         const id = req.query.id || body?.id;
         if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
-        await pool.query('DELETE FROM coa_accounts WHERE id = $1 AND user_id = $2', [id, user.id]);
+        await sql`DELETE FROM coa_accounts WHERE id = ${id} AND user_id = ${user.id}`;
         return res.status(200).json({ success: true, message: 'COA Account deleted' });
       } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });

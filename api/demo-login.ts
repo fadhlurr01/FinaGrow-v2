@@ -1,4 +1,4 @@
-import { getPool } from './_db';
+import { sql } from './_db';
 
 export default async function handler(req: any, res: any) {
   try {
@@ -8,26 +8,19 @@ export default async function handler(req: any, res: any) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const pool = getPool();
-    const adminRes = await pool.query("SELECT * FROM users WHERE email = 'demo_admin@fms.com' LIMIT 1");
-    let admin = adminRes.rows[0];
-
-    if (!admin) {
-      const userRes = await pool.query("SELECT * FROM users WHERE role = 'admin' OR role = 'demo' LIMIT 1");
-      admin = userRes.rows[0];
-    }
+    const [admin] = await sql`SELECT * FROM users WHERE email = 'demo_admin@fms.com' LIMIT 1`;
 
     if (!admin) {
       return res.status(200).json({
         success: true,
-        token: 'DEMO_FALLBACK_TOKEN_12345678',
-        user: { id: 1, name: 'Demo Administrator', email: 'demo_admin@fms.com', role: 'admin', is_pro: true, subscription: 'Pro' }
+        token: 'DEMO_ADMIN_API_TOKEN_EsF5h6B1nHaCVvCcbKzKDYrqfb4u4c',
+        user: { id: 1, name: 'Demo Admin', email: 'demo_admin@fms.com', role: 'admin', is_pro: true, subscription: 'Pro' }
       });
     }
 
     return res.status(200).json({
       success: true,
-      token: admin.api_token || 'DEMO_ADMIN_TOKEN_SECURE',
+      token: admin.api_token || 'DEMO_ADMIN_API_TOKEN_EsF5h6B1nHaCVvCcbKzKDYrqfb4u4c',
       user: {
         id: admin.id,
         name: admin.name,
@@ -41,8 +34,8 @@ export default async function handler(req: any, res: any) {
   } catch (err: any) {
     return res.status(200).json({
       success: true,
-      token: 'DEMO_FALLBACK_TOKEN_12345678',
-      user: { id: 1, name: 'Demo Administrator', email: 'demo_admin@fms.com', role: 'admin', is_pro: true, subscription: 'Pro' }
+      token: 'DEMO_ADMIN_API_TOKEN_EsF5h6B1nHaCVvCcbKzKDYrqfb4u4c',
+      user: { id: 1, name: 'Demo Admin', email: 'demo_admin@fms.com', role: 'admin', is_pro: true, subscription: 'Pro' }
     });
   }
 }
