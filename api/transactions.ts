@@ -16,10 +16,17 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'GET') {
       try {
         const rows = await sql`SELECT * FROM transactions WHERE user_id = ${user.id} ORDER BY date DESC, created_at DESC`;
-        const mapped = rows.map((r: any) => ({
-          ...r,
-          amount: Number(r.amount)
-        }));
+        const mapped = rows.map((r: any) => {
+          let cleanDate = '';
+          if (r.date) {
+            cleanDate = typeof r.date === 'string' ? r.date.slice(0, 10) : new Date(r.date).toISOString().slice(0, 10);
+          }
+          return {
+            ...r,
+            date: cleanDate,
+            amount: Number(r.amount || 0)
+          };
+        });
         return res.status(200).json({ success: true, data: mapped });
       } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });

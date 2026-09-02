@@ -83,18 +83,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, isMobileSidebarOpen, setIs
           <span>{isPro ? 'PRO' : 'FREE'}</span>
         </button>
 
-        {/* Sync Cloud Database Button */}
-        <button
-          type="button"
-          onClick={() => refreshFromApi()}
-          disabled={isLoading}
-          title={language === 'en' ? 'Sync with Aiven Cloud DB' : 'Sinkronkan dengan Database Cloud Aiven'}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-155 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="hidden md:inline">{isLoading ? 'Syncing...' : 'Sync Cloud'}</span>
-        </button>
-
         {/* Toggle Lang */}
         <button
           type="button"

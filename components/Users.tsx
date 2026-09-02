@@ -332,32 +332,19 @@ const Users: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={fetchUsers}
-            disabled={isLoadingCloud}
-            title={language === 'id' ? 'Sinkronisasi Data Cloud Aiven' : 'Sync Cloud Data'}
-            className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold py-3 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 text-primary-500 ${isLoadingCloud ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{language === 'id' ? 'Sync Cloud' : 'Sync Cloud'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setName('');
-              setEmail('');
-              setRole('Accountant');
-              setIsAddModalOpen(true);
-            }}
-            className="whitespace-nowrap flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            <span>{language === 'id' ? 'Undang Anggota' : 'Invite Member'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setName('');
+            setEmail('');
+            setRole('Accountant');
+            setIsAddModalOpen(true);
+          }}
+          className="whitespace-nowrap flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
+        >
+          <Plus className="w-4 h-4 text-white" />
+          <span>{language === 'id' ? 'Undang Anggota' : 'Invite Member'}</span>
+        </button>
       </div>
 
       {/* 2. SUMMARY STATS */}
