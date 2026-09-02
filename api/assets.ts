@@ -53,7 +53,8 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'PUT') {
       try {
         const a = body;
-        const id = req.query.id || a.id;
+        const urlId = req.url && req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : null;
+        const id = req.query?.id || a?.id || urlId;
         if (!id) return res.status(422).json({ success: false, message: 'Asset ID required' });
 
         const [updatedAsset] = await sql`
@@ -77,7 +78,8 @@ export default async function handler(req: any, res: any) {
 
     if (req.method === 'DELETE') {
       try {
-        const id = req.query.id || body?.id;
+        const urlId = req.url && req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : null;
+        const id = req.query?.id || body?.id || urlId;
         if (!id) return res.status(422).json({ success: false, message: 'Asset ID required' });
         await sql`DELETE FROM assets WHERE id = ${id} AND user_id = ${user.id}`;
         return res.status(200).json({ success: true, message: 'Asset deleted' });

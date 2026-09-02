@@ -56,7 +56,8 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'PUT') {
       try {
         const c = body;
-        const id = req.query.id || c.id;
+        const urlId = req.url && req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : null;
+        const id = req.query?.id || c?.id || urlId;
         if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
 
         const [updatedCoa] = await sql`
@@ -85,7 +86,8 @@ export default async function handler(req: any, res: any) {
 
     if (req.method === 'DELETE') {
       try {
-        const id = req.query.id || body?.id;
+        const urlId = req.url && req.url.includes('?') ? new URL(req.url, 'http://localhost').searchParams.get('id') : null;
+        const id = req.query?.id || body?.id || urlId;
         if (!id) return res.status(422).json({ success: false, message: 'COA ID required' });
         await sql`DELETE FROM coa_accounts WHERE id = ${id} AND user_id = ${user.id}`;
         return res.status(200).json({ success: true, message: 'COA Account deleted' });

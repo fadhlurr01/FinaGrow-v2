@@ -88,11 +88,11 @@ export const transactionsApi = {
     return res.data;
   },
   update: async (id: string, tx: Partial<Transaction>) => {
-    const res = await api.put(`/transactions/${id}`, tx);
+    const res = await api.put('/transactions', { ...tx, id }, { params: { id } });
     return res.data;
   },
   delete: async (id: string) => {
-    const res = await api.delete(`/transactions/${id}`);
+    const res = await api.delete('/transactions', { params: { id }, data: { id } });
     return res.data;
   },
 };
@@ -108,11 +108,11 @@ export const assetsApi = {
     return res.data;
   },
   update: async (id: string, assetData: any) => {
-    const res = await api.put(`/assets/${id}`, assetData);
+    const res = await api.put('/assets', { ...assetData, id }, { params: { id } });
     return res.data;
   },
   delete: async (id: string) => {
-    const res = await api.delete(`/assets/${id}`);
+    const res = await api.delete('/assets', { params: { id }, data: { id } });
     return res.data;
   },
 };
@@ -128,11 +128,11 @@ export const coaApi = {
     return res.data;
   },
   update: async (id: string, accountData: any) => {
-    const res = await api.put(`/coa/${id}`, accountData);
+    const res = await api.put('/coa', { ...accountData, id }, { params: { id } });
     return res.data;
   },
   delete: async (id: string) => {
-    const res = await api.delete(`/coa/${id}`);
+    const res = await api.delete('/coa', { params: { id }, data: { id } });
     return res.data;
   },
 };
@@ -143,13 +143,13 @@ export const subscriptionsApi = {
     const res = await api.get('/subscription/current');
     return res.data;
   },
-  upgrade: async (plan: 'Pro' | 'Enterprise') => {
-    const res = await api.post('/subscription/upgrade', { plan });
+  update: async (plan: 'Free' | 'Pro') => {
+    const res = await api.post('/subscription', { plan });
     return res.data;
   },
 };
 
-// --- USERS MANAGEMENT API SERVICE ---
+// --- USERS / TEAM API SERVICE ---
 export const usersApi = {
   getAll: async () => {
     const res = await api.get('/users');
@@ -160,11 +160,11 @@ export const usersApi = {
     return res.data;
   },
   update: async (id: string, userData: any) => {
-    const res = await api.put(`/users?id=${id}`, userData);
+    const res = await api.put('/users', { ...userData, id }, { params: { id } });
     return res.data;
   },
   delete: async (id: string) => {
-    const res = await api.delete(`/users?id=${id}`);
+    const res = await api.delete('/users', { params: { id }, data: { id } });
     return res.data;
   },
 };
