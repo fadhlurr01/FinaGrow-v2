@@ -1,4 +1,4 @@
-import { getUserFromToken, sql, parseBody } from './_db';
+import { getUserFromToken, sql, parseBody } from './_db.js';
 
 export default async function handler(req: any, res: any) {
   try {

@@ -1,4 +1,4 @@
-import { sql, parseBody } from './_db';
+import { sql, parseBody } from './_db.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
