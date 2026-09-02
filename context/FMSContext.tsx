@@ -144,44 +144,7 @@ export const DEMO_VENDORS: Vendor[] = [
 ];
 
 export const DEMO_INVOICES: Invoice[] = [
-  // Sales Invoices (AR)
-  {
-    id: 'INV-2026-ENT01',
-    invoiceNumber: 'INV-2026-ENT01',
-    customer: {
-      name: 'PT. Astra International',
-      email: 'billing@astra.co.id'
-    },
-    issueDate: '2026-08-20',
-    dueDate: '2026-09-19',
-    amount: 388500000,
-    status: 'Paid',
-    type: 'AR',
-    party: 'PT. Astra International',
-    desc: 'Enterprise ERP License Implementation',
-    vat: 38500000,
-    cur: 'IDR',
-    entity: 'E1'
-  },
-  {
-    id: 'INV-2026-ENT02',
-    invoiceNumber: 'INV-2026-ENT02',
-    customer: {
-      name: 'Kementerian Keuangan RI',
-      email: 'finance@kemenkeu.go.id'
-    },
-    issueDate: '2026-08-25',
-    dueDate: '2026-09-14',
-    amount: 799200000,
-    status: 'Pending',
-    type: 'AR',
-    party: 'Kementerian Keuangan RI',
-    desc: 'Cloud Infrastructure & Accounting Modernization',
-    vat: 79200000,
-    cur: 'IDR',
-    entity: 'E1'
-  },
-  // Purchases Bills (AP)
+  // Purchases Bills (AP - Input VAT)
   {
     id: 'BILL-2026-VND01',
     invoiceNumber: 'BILL-2026-VND01',
@@ -189,14 +152,51 @@ export const DEMO_INVOICES: Invoice[] = [
       name: 'AWS Indonesia',
       email: 'budi@aws.id'
     },
-    issueDate: '2026-08-20',
+    issueDate: '2026-08-31',
     dueDate: '2026-09-11',
-    amount: 105450000,
+    amount: 95000000,
     status: 'Paid',
     type: 'AP',
     party: 'AWS Indonesia',
     desc: 'Biaya server cluster AWS Singapore',
-    vat: 10450000,
+    vat: 11,
+    cur: 'IDR',
+    entity: 'E1'
+  },
+  // Sales Invoices (AR - Output VAT)
+  {
+    id: 'INV-2026-ENT02',
+    invoiceNumber: 'INV-2026-ENT02',
+    customer: {
+      name: 'Kementerian Keuangan RI',
+      email: 'finance@kemenkeu.go.id'
+    },
+    issueDate: '2026-08-28',
+    dueDate: '2026-09-14',
+    amount: 720000000,
+    status: 'Pending',
+    type: 'AR',
+    party: 'Kementerian Keuangan RI',
+    desc: 'Cloud Infrastructure & Accounting Modernization',
+    vat: 11,
+    cur: 'IDR',
+    entity: 'E1'
+  },
+  {
+    id: 'INV-2026-ENT01',
+    invoiceNumber: 'INV-2026-ENT01',
+    customer: {
+      name: 'PT. Astra International',
+      email: 'billing@astra.co.id'
+    },
+    issueDate: '2026-08-23',
+    dueDate: '2026-09-19',
+    amount: 350000000,
+    status: 'Paid',
+    type: 'AR',
+    party: 'PT. Astra International',
+    desc: 'Enterprise ERP License Implementation',
+    vat: 11,
     cur: 'IDR',
     entity: 'E1'
   }

@@ -82,6 +82,27 @@ const Tax: React.FC = () => {
     });
   }, [taxTransactions, taxTypeFilter, searchTerm]);
 
+  const handleExportCsv = () => {
+    const headers = ['Date', 'Document No', 'Party', 'Tax Type', 'Subtotal (IDR)', 'Tax Rate', 'Tax Amount (IDR)'];
+    const rows = filteredTaxTransactions.map(tx => [
+      tx.issueDate,
+      `"${tx.invoiceNumber}"`,
+      `"${tx.customer?.name || tx.party || ''}"`,
+      `"${tx.taxType}"`,
+      tx.amount,
+      `${tx.vat}%`,
+      tx.taxAmount
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Tax_Ledger_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Header with visual accent */}
@@ -101,7 +122,7 @@ const Tax: React.FC = () => {
         {/* Action button */}
         <button
           type="button"
-          onClick={() => alert(language === 'id' ? 'Mengekspor laporan e-Faktur...' : 'Exporting e-Tax spreadsheet records...')}
+          onClick={handleExportCsv}
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition cursor-pointer"
         >
           <FileSpreadsheet className="w-4 h-4 text-white" />
