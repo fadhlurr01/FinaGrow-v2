@@ -294,7 +294,10 @@ const Auth: React.FC<AuthProps> = ({ mode: initialMode, onNavigate }) => {
             transactions: [],
             assets: [],
             invoices: [],
+            coa: [],
           };
+
+          localStorage.setItem(`fms_state_user_${normalEmail}`, JSON.stringify(freshNewState));
 
           dispatch({
             type: 'LOGIN_USER',
@@ -378,15 +381,22 @@ const Auth: React.FC<AuthProps> = ({ mode: initialMode, onNavigate }) => {
           localStorage.setItem('fms_auth_token', res.token);
           localStorage.setItem('fms_active_user_email', normalEmail);
 
-          const targetStateData = {
-            ...DEFAULT_STATE,
+          const isDemoAdmin = ['demo_admin@fms.com', 'demo@finagrow.com', 'demo@fms.com'].includes(normalEmail);
+          const isDemoUser = normalEmail === 'demo_user@fms.com';
+          const baseState = isDemoAdmin ? DEFAULT_DEMO_STATE : (isDemoUser ? DEFAULT_DEMO_USER_STATE : DEFAULT_CLEAN_STATE);
+
+          const storedState = localStorage.getItem(`fms_state_user_${normalEmail}`);
+          const targetStateData = storedState ? JSON.parse(storedState) : {
+            ...baseState,
             currentUserEmail: normalEmail,
-            role: res.user.role || 'User',
+            role: res.user.role || (isDemoAdmin ? 'Admin' : 'User'),
             subscription: res.user.is_pro ? ('Pro' as const) : ('Free' as const),
             users: [
-              { id: String(res.user.id), name: res.user.name, email: normalEmail, role: res.user.role, subscription: res.user.subscription }
+              { id: String(res.user.id), name: res.user.name, email: normalEmail, role: res.user.role || (isDemoAdmin ? 'Admin' : 'User'), subscription: res.user.is_pro ? 'Pro Plan' : 'Free Plan', status: 'Active' }
             ]
           };
+
+          localStorage.setItem(`fms_state_user_${normalEmail}`, JSON.stringify(targetStateData));
 
           dispatch({
             type: 'LOGIN_USER',
@@ -428,13 +438,18 @@ const Auth: React.FC<AuthProps> = ({ mode: initialMode, onNavigate }) => {
         return;
       }
 
+      const isDemoAdmin = ['demo_admin@fms.com', 'demo@finagrow.com', 'demo@fms.com'].includes(normalEmail);
+      const isDemoUser = normalEmail === 'demo_user@fms.com';
+      const baseState = isDemoAdmin ? DEFAULT_DEMO_STATE : (isDemoUser ? DEFAULT_DEMO_USER_STATE : DEFAULT_CLEAN_STATE);
+
       const storedState = localStorage.getItem(`fms_state_user_${normalEmail}`);
       const targetStateData = storedState ? JSON.parse(storedState) : {
-        ...DEFAULT_STATE,
+        ...baseState,
         currentUserEmail: normalEmail,
-        users: [{ id: 'U1', name: activeUser.name, email: normalEmail, role: 'User', subscription: 'Free' }]
+        users: [{ id: 'U1', name: activeUser.name, email: normalEmail, role: isDemoAdmin ? 'Admin' : 'User', subscription: isDemoAdmin ? 'Pro Plan' : 'Free Plan' }]
       };
 
+      localStorage.setItem(`fms_state_user_${normalEmail}`, JSON.stringify(targetStateData));
       localStorage.setItem('fms_active_user_email', normalEmail);
       dispatch({
         type: 'LOGIN_USER',

@@ -540,7 +540,7 @@ export const DEFAULT_CLEAN_STATE: FMSState = {
   ],
 };
 
-export const DEFAULT_STATE: FMSState = DEFAULT_DEMO_STATE;
+export const DEFAULT_STATE: FMSState = DEFAULT_CLEAN_STATE;
 
 type Action =
   | { type: 'SET_STATE'; payload: FMSState }
@@ -837,7 +837,7 @@ const fmsReducer = (state: FMSState, action: Action): FMSState => {
 
     case 'LOGOUT_USER':
       return {
-        ...DEFAULT_STATE,
+        ...DEFAULT_CLEAN_STATE,
         currentUserEmail: undefined
       };
 
@@ -882,7 +882,7 @@ const FMSContext = createContext<FMSContextType>({
 
 export const FMSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [state, dispatch] = useReducer(fmsReducer, DEFAULT_STATE, (initial) => {
+  const [state, dispatch] = useReducer(fmsReducer, DEFAULT_CLEAN_STATE, (initial) => {
     try {
       const activeEmail = localStorage.getItem('fms_active_user_email');
       if (activeEmail) {
@@ -890,6 +890,11 @@ export const FMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (userData) {
           return { ...JSON.parse(userData), currentUserEmail: activeEmail };
         }
+        const isDemoAdmin = ['demo_admin@fms.com', 'demo@finagrow.com', 'demo@fms.com'].includes(activeEmail.toLowerCase());
+        const isDemoUser = activeEmail.toLowerCase() === 'demo_user@fms.com';
+        if (isDemoAdmin) return { ...DEFAULT_DEMO_STATE, currentUserEmail: activeEmail };
+        if (isDemoUser) return { ...DEFAULT_DEMO_USER_STATE, currentUserEmail: activeEmail };
+        return { ...DEFAULT_CLEAN_STATE, currentUserEmail: activeEmail };
       }
       return initial;
     } catch (e) {
