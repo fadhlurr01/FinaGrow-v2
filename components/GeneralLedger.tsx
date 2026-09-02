@@ -6,7 +6,7 @@ import { useFMS } from '../context/FMSContext';
 
 const GeneralLedger: React.FC = () => {
   const { language, t } = useLocalization();
-  const { state, dispatch } = useFMS();
+  const { state, dispatch, createTransactionApi, deleteTransactionApi } = useFMS();
 
   // Dialog overlays state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -38,7 +38,7 @@ const GeneralLedger: React.FC = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleSaveJE = (e: React.FormEvent) => {
+  const handleSaveJE = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.description || !formData.amount || !formData.dr || !formData.cr) {
       alert(language === 'en' ? 'Please fill in all required fields' : 'Silakan isi semua bidang yang diperlukan');
@@ -59,7 +59,7 @@ const GeneralLedger: React.FC = () => {
       entity: state.activeEntity,
     };
 
-    dispatch({ type: 'ADD_TRANSACTION', payload });
+    await createTransactionApi(payload);
     setIsAddModalOpen(false);
   };
 
@@ -67,9 +67,9 @@ const GeneralLedger: React.FC = () => {
     setIsDeleteConfirmOpen(txId);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (isDeleteConfirmOpen) {
-      dispatch({ type: 'DELETE_TRANSACTION', payload: isDeleteConfirmOpen });
+      await deleteTransactionApi(isDeleteConfirmOpen);
       setIsDeleteConfirmOpen(null);
     }
   };

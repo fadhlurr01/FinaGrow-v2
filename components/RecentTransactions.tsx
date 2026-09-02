@@ -29,7 +29,7 @@ const StatusBadge: React.FC<{ status: Transaction['status'] }> = ({ status }) =>
 };
 
 const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions }) => {
-  const { state, dispatch } = useFMS();
+  const { state, dispatch, createTransactionApi, deleteTransactionApi } = useFMS();
   const { language, t } = useLocalization();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -66,7 +66,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions })
     setIsAddModalOpen(true);
   };
 
-  const handleSaveTransaction = (e: React.FormEvent) => {
+  const handleSaveTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.description || !formData.amount || !formData.dr || !formData.cr) {
       alert(language === 'en' ? 'Please fill in all required fields' : 'Silakan isi semua bidang yang diperlukan');
@@ -87,7 +87,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions })
       entity: state.activeEntity,
     };
 
-    dispatch({ type: 'ADD_TRANSACTION', payload });
+    await createTransactionApi(payload);
     setIsAddModalOpen(false);
   };
 
@@ -96,9 +96,9 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions })
     setIsDeleteConfirmOpen(txId);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (isDeleteConfirmOpen) {
-      dispatch({ type: 'DELETE_TRANSACTION', payload: isDeleteConfirmOpen });
+      await deleteTransactionApi(isDeleteConfirmOpen);
       setIsDeleteConfirmOpen(null);
     }
   };

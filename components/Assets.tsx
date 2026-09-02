@@ -34,7 +34,7 @@ const DEFAULT_ASSETS: Asset[] = [
 ];
 
 const Assets: React.FC = () => {
-  const { state, dispatch } = useFMS();
+  const { state, dispatch, createAssetApi, updateAssetApi, deleteAssetApi } = useFMS();
   const { language, t } = useLocalization();
 
   // Use assets from FMSContext state directly
@@ -187,7 +187,7 @@ const Assets: React.FC = () => {
   }, [assetsWithCalculations, selectedCategory, searchTerm]);
 
   // Handle Create Asset
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code || !name || purchaseCost <= 0) return;
 
@@ -202,12 +202,7 @@ const Assets: React.FC = () => {
       depreciationMethod
     };
 
-    // Save using context
-    const updated = state.assets && state.assets.length > 0 
-      ? [...state.assets, newAsset]
-      : [...DEFAULT_ASSETS, newAsset];
-
-    dispatch({ type: 'ADD_ASSET', payload: newAsset });
+    await createAssetApi(newAsset);
     setIsAddModalOpen(false);
     
     // Clear Form
@@ -231,7 +226,7 @@ const Assets: React.FC = () => {
   };
 
   // Save Edit Asset
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!focusedAsset || purchaseCost <= 0) return;
 
@@ -246,7 +241,7 @@ const Assets: React.FC = () => {
       depreciationMethod
     };
 
-    dispatch({ type: 'EDIT_ASSET', payload: modified });
+    await updateAssetApi(modified.id, modified);
     setIsEditModalOpen(false);
     setFocusedAsset(null);
   };
@@ -258,9 +253,9 @@ const Assets: React.FC = () => {
   };
 
   // Confirm Delete
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!focusedAsset) return;
-    dispatch({ type: 'DELETE_ASSET', payload: focusedAsset.id });
+    await deleteAssetApi(focusedAsset.id);
     setIsDeleteModalOpen(false);
     setFocusedAsset(null);
   };
